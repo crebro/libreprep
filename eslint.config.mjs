@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Source design reference — not part of the Next.js app:
+    "libreprep-react-ui/**",
   ]),
 ]);
 

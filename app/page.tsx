@@ -1,65 +1,183 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { sections, type Section } from "@/lib/sat-filters";
+
+export default function HomePage() {
+  const [activeSection, setActiveSection] = useState<"english" | "math">("english");
+  const [selectedClasses, setSelectedClasses] = useState<Record<string, boolean>>({});
+  const [selectedSkills, setSelectedSkills] = useState<Record<string, boolean>>({});
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  const section = sections.find((s) => s.id === activeSection)!;
+
+  const toggleClass = (sec: Section, classId: string) => {
+    const cls = sec.classes.find((c) => c.id === classId)!;
+    const isOn = !selectedClasses[classId];
+    setSelectedClasses((s) => ({ ...s, [classId]: isOn }));
+    setSelectedSkills((s) => {
+      const next = { ...s };
+      for (const sk of cls.skills) next[sk.id] = isOn;
+      return next;
+    });
+  };
+
+  const toggleSkill = (skillId: string) => {
+    setSelectedSkills((s) => ({ ...s, [skillId]: !s[skillId] }));
+  };
+
+  const counts = useMemo(() => {
+    const perSection = sections.map((sec) => {
+      let skillCount = 0;
+      for (const c of sec.classes) for (const sk of c.skills) if (selectedSkills[sk.id]) skillCount++;
+      return { id: sec.id, skillCount };
+    });
+    return perSection;
+  }, [selectedSkills]);
+
+  const totalSkills = counts.reduce((a, c) => a + c.skillCount, 0);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="min-h-screen bg-[#f7f5f0] font-sans text-[#0b1a2b]">
+      {/* Nav */}
+      <nav className="border-b border-[#0b1a2b]/10 bg-[#f7f5f0]/80 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+            <span className="text-lg font-semibold tracking-tight">LibrePrep</span>
+          </div>
+          <Link
+            href="/test"
+            className="rounded-full bg-[#03345D] px-4 py-2 text-sm font-semibold text-white hover:bg-[#052a4a]"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Start test →
+          </Link>
         </div>
-      </main>
+      </nav>
+
+      {/* Hero */}
+      <section className="mx-auto max-w-6xl px-6 pb-8 pt-14 text-center">
+        <h1 className="font-serif text-5xl font-semibold tracking-tight text-[#03345D]">
+          Free the SAT.
+        </h1>
+        <p className="mx-auto mt-4 max-w-xl text-base text-[#0b1a2b]/70">
+          Build a custom question set from the SAT domains and skills you actually want to
+          practice — then attempt it in a full Bluebook-style test interface.
+        </p>
+      </section>
+
+      {/* Filter builder */}
+      <section className="mx-auto max-w-5xl px-6 pb-24">
+        <div className="rounded-2xl border border-[#0b1a2b]/10 bg-white shadow-sm">
+          {/* Section tabs */}
+          <div className="flex border-b border-[#0b1a2b]/10">
+            {sections.map((s) => {
+              const active = activeSection === s.id;
+              const count = counts.find((c) => c.id === s.id)!.skillCount;
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => setActiveSection(s.id)}
+                  className={`relative flex-1 px-6 py-4 text-left transition ${
+                    active ? "bg-[#03345D] text-white" : "text-[#0b1a2b] hover:bg-[#0b1a2b]/5"
+                  }`}
+                >
+                  <div className="text-xs uppercase tracking-wide opacity-70">Section</div>
+                  <div className="mt-0.5 flex items-center gap-2 text-lg font-semibold">
+                    {s.name}
+                    {count > 0 && (
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                          active ? "bg-white/20" : "bg-[#03345D] text-white"
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Classes and skills */}
+          <div className="divide-y divide-[#0b1a2b]/10">
+            {section.classes.map((cls) => {
+              const isExpanded = expanded[cls.id] ?? true;
+              const classOn = !!selectedClasses[cls.id];
+              const activeSkills = cls.skills.filter((sk) => selectedSkills[sk.id]).length;
+              return (
+                <div key={cls.id} className="px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <button
+                      role="switch"
+                      aria-checked={classOn}
+                      onClick={() => toggleClass(section, cls.id)}
+                      className={`relative h-6 w-11 rounded-full transition ${
+                        classOn ? "bg-[#03345D]" : "bg-[#0b1a2b]/20"
+                      }`}
+                    >
+                      <span
+                        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition ${
+                          classOn ? "left-[22px]" : "left-0.5"
+                        }`}
+                      />
+                    </button>
+                    <button
+                      onClick={() => setExpanded((e) => ({ ...e, [cls.id]: !isExpanded }))}
+                      className="flex flex-1 items-center justify-between"
+                    >
+                      <div className="text-left">
+                        <div className="font-medium">{cls.name}</div>
+                        <div className="text-xs text-[#0b1a2b]/60">
+                          {activeSkills} of {cls.skills.length} skills selected
+                        </div>
+                      </div>
+                      <span className="text-[#0b1a2b]/40">{isExpanded ? "▾" : "▸"}</span>
+                    </button>
+                  </div>
+
+                  {isExpanded && (
+                    <div className="mt-3 flex flex-wrap gap-2 pl-14">
+                      {cls.skills.map((sk) => {
+                        const on = !!selectedSkills[sk.id];
+                        return (
+                          <button
+                            key={sk.id}
+                            onClick={() => toggleSkill(sk.id)}
+                            className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                              on
+                                ? "border-[#03345D] bg-[#03345D] text-white"
+                                : "border-[#0b1a2b]/25 text-[#0b1a2b] hover:border-[#03345D]"
+                            }`}
+                          >
+                            {sk.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Footer CTA */}
+          <div className="flex items-center justify-between border-t border-[#0b1a2b]/10 bg-[#f7f5f0]/60 px-6 py-4">
+            <div className="text-sm text-[#0b1a2b]/70">
+              {totalSkills === 0
+                ? "No skills selected — you'll get a mixed practice set."
+                : `${totalSkills} skill${totalSkills === 1 ? "" : "s"} selected`}
+            </div>
+            <Link
+              href="/test"
+              className="rounded-full bg-[#03345D] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#052a4a]"
+            >
+              Start practice test →
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
