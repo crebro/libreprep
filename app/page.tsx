@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { sections, type Section } from "@/lib/sat-filters";
@@ -9,6 +9,13 @@ export default function HomePage() {
   const [selectedClasses, setSelectedClasses] = useState<Record<string, boolean>>({});
   const [selectedSkills, setSelectedSkills] = useState<Record<string, boolean>>({});
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [selectedDifficulty, setSelectedDifficulty] = useState<Record<string, boolean>>({
+    E: false,
+    M: false,
+    H: false,
+  });
+  const [checkEnabled, setCheckEnabled] = useState(true);
+  const [showAdvanced, setShowAdvanced] = useState(true);
 
   const section = sections.find((s) => s.id === activeSection)!;
 
@@ -27,6 +34,10 @@ export default function HomePage() {
     setSelectedSkills((s) => ({ ...s, [skillId]: !s[skillId] }));
   };
 
+  const toggleDifficulty = (d: string) => {
+    setSelectedDifficulty((s) => ({ ...s, [d]: !s[d] }));
+  };
+
   const counts = useMemo(() => {
     const perSection = sections.map((sec) => {
       let skillCount = 0;
@@ -38,16 +49,45 @@ export default function HomePage() {
 
   const totalSkills = counts.reduce((a, c) => a + c.skillCount, 0);
 
+  const anyDifficultySelected = Object.values(selectedDifficulty).some(Boolean);
+  const difficultyLabel = anyDifficultySelected
+    ? Object.entries(selectedDifficulty)
+        .filter(([, v]) => v)
+        .map(([k]) => k)
+        .join(",")
+    : "E,M,H";
+
+  const buildTestUrl = () => {
+    const params = new URLSearchParams();
+    params.set("subject", activeSection);
+
+    const classShortcodes = section.classes
+      .filter((c) => selectedClasses[c.id])
+      .map((c) => c.shortcode);
+    if (classShortcodes.length > 0) params.set("classes", classShortcodes.join(","));
+
+    const skillShortcodes = section.classes
+      .flatMap((c) => c.skills)
+      .filter((sk) => selectedSkills[sk.id])
+      .map((sk) => sk.shortcode);
+    if (skillShortcodes.length > 0) params.set("skills", skillShortcodes.join(","));
+
+    params.set("difficulty", difficultyLabel);
+    params.set("check", checkEnabled ? "true" : "false");
+
+    return `/test?${params.toString()}`;
+  };
+
   return (
     <div className="min-h-screen bg-[#f7f5f0] font-sans text-[#0b1a2b]">
       {/* Nav */}
       <nav className="border-b border-[#0b1a2b]/10 bg-[#f7f5f0]/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <span className="text-lg font-semibold tracking-tight">LibrePrep</span>
+            <Image src="/libreprep-logo.png" alt="LibrePrep Logo" width={50} height={50} />
           </div>
           <Link
-            href="/test"
+            href={buildTestUrl()}
             className="rounded-full bg-[#03345D] px-4 py-2 text-sm font-semibold text-white hover:bg-[#052a4a]"
           >
             Start test →
@@ -57,6 +97,9 @@ export default function HomePage() {
 
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-6 pb-8 pt-14 text-center">
+        <div className="flex justify-center ">
+          <Image src="/libreprep-long.svg" alt="LibrePrep Logo" width={983} height={512} style={{ width: '300px', height: 'auto' }} loading={'eager'} />
+        </div>
         <h1 className="font-serif text-5xl font-semibold tracking-tight text-[#03345D]">
           Free the SAT.
         </h1>
@@ -98,6 +141,33 @@ export default function HomePage() {
                 </button>
               );
             })}
+          </div>
+
+          {/* Difficulty selector */}
+          <div className="border-b border-[#0b1a2b]/10 px-6 py-4">
+            <div className="text-xs uppercase tracking-wide text-[#0b1a2b]/50 mb-2">Difficulty</div>
+            <div className="flex gap-2">
+              {(["E", "M", "H"] as const).map((d) => {
+                const label = d === "E" ? "Easy" : d === "M" ? "Medium" : "Hard";
+                const on = !!selectedDifficulty[d];
+                return (
+                  <button
+                    key={d}
+                    onClick={() => toggleDifficulty(d)}
+                    className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${
+                      on
+                        ? "border-[#03345D] bg-[#03345D] text-white"
+                        : "border-[#0b1a2b]/25 text-[#0b1a2b] hover:border-[#03345D]"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            {!anyDifficultySelected && (
+              <div className="mt-1 text-xs text-[#0b1a2b]/50">All difficulties selected</div>
+            )}
           </div>
 
           {/* Classes and skills */}
@@ -162,15 +232,50 @@ export default function HomePage() {
             })}
           </div>
 
+          {/* Advanced settings */}
+          <div className="border-b border-[#0b1a2b]/10">
+            <button
+              onClick={() => setShowAdvanced((v) => !v)}
+              className="flex w-full items-center justify-between px-6 py-3 text-sm font-medium text-[#0b1a2b]/70 hover:text-[#0b1a2b]"
+            >
+              Advanced Settings
+              <span className="text-[#0b1a2b]/40">{showAdvanced ? "▾" : "▸"}</span>
+            </button>
+            {showAdvanced && (
+              <div className="px-6 pb-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <button
+                    role="switch"
+                    aria-checked={checkEnabled}
+                    onClick={() => setCheckEnabled((v) => !v)}
+                    className={`relative h-6 w-11 rounded-full transition ${
+                      checkEnabled ? "bg-[#03345D]" : "bg-[#0b1a2b]/20"
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition ${
+                        checkEnabled ? "left-[22px]" : "left-0.5"
+                      }`}
+                    />
+                  </button>
+                  <span className="text-sm">Enable check button</span>
+                </label>
+                <p className="mt-1 text-xs text-[#0b1a2b]/50 pl-14">
+                  Show a check button after answering each question to verify if your answer is correct.
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* Footer CTA */}
-          <div className="flex items-center justify-between border-t border-[#0b1a2b]/10 bg-[#f7f5f0]/60 px-6 py-4">
+          <div className="flex items-center justify-between bg-[#f7f5f0]/60 px-6 py-4">
             <div className="text-sm text-[#0b1a2b]/70">
               {totalSkills === 0
                 ? "No skills selected — you'll get a mixed practice set."
                 : `${totalSkills} skill${totalSkills === 1 ? "" : "s"} selected`}
             </div>
             <Link
-              href="/test"
+              href={buildTestUrl()}
               className="rounded-full bg-[#03345D] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#052a4a]"
             >
               Start practice test →
