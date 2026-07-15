@@ -11,7 +11,7 @@ import { ReferenceSheet } from "@/components/sat/ReferenceSheet";
 import { saveAnswers, loadAnswers, buildSessionKey } from "@/lib/idb";
 import type { QuestionMeta, QuestionFull, QuestionState, AnswerStore } from "@/lib/types";
 
-const BATCH_SIZE = 20;
+const BATCH_SIZE = 5;
 
 type Phase = "loading" | "ready" | "error" | "empty";
 
@@ -99,7 +99,7 @@ function TestPageInner() {
       try {
         let query = supabase
           .from("questions")
-          .select("id, subject, primary_class_id, skill_id, question_type, difficulty, sat_question_id, primary_classes!inner(shortcode), skills!inner(shortcode)")
+          .select("id, subject, primary_class_id, skill_id, question_type, difficulty, sat_question_id, primary_class:primary_classes!inner(shortcode), skill:skills!inner(shortcode)")
           .eq("subject", subject)
           .order("created_at", { ascending: true });
 
@@ -727,13 +727,13 @@ function NavigatorOverlay({
 
     for (let i = 0; i < questionIds.length; i++) {
       const q = questionIds[i];
-      const classShortcode = q.primary_classes?.[0]?.shortcode ?? q.primary_class_id;
+      const classShortcode = q.primary_class?.shortcode ?? q.primary_class_id;
       if (!map.has(classShortcode)) {
         map.set(classShortcode, { skills: new Map() });
       }
       const classEntry = map.get(classShortcode)!;
 
-      const skillShortcode = q.skills?.[0]?.shortcode ?? q.skill_id;
+      const skillShortcode = q.skill?.shortcode ?? q.skill_id;
       if (!classEntry.skills.has(skillShortcode)) {
         classEntry.skills.set(skillShortcode, { questions: [] });
       }

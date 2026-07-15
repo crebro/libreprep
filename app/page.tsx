@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { sections, type Section } from "@/lib/sat-filters";
@@ -31,7 +30,30 @@ export default function HomePage() {
   };
 
   const toggleSkill = (skillId: string) => {
+    const isBeingEnabled = !selectedSkills[skillId];
     setSelectedSkills((s) => ({ ...s, [skillId]: !s[skillId] }));
+
+    // Find parent class
+    for (const sec of sections) {
+      for (const cls of sec.classes) {
+        const sk = cls.skills.find((s) => s.id === skillId);
+        if (sk) {
+          if (isBeingEnabled) {
+            // Enable parent class when a skill is enabled
+            setSelectedClasses((s) => ({ ...s, [cls.id]: true }));
+          } else {
+            // If no other skills in this class are selected, disable the parent
+            const anyOtherSelected = cls.skills.some(
+              (s) => s.id !== skillId && selectedSkills[s.id],
+            );
+            if (!anyOtherSelected) {
+              setSelectedClasses((s) => ({ ...s, [cls.id]: false }));
+            }
+          }
+          return;
+        }
+      }
+    }
   };
 
   const toggleDifficulty = (d: string) => {
@@ -84,7 +106,7 @@ export default function HomePage() {
       <nav className="border-b border-[#0b1a2b]/10 bg-[#f7f5f0]/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <Image src="/libreprep-logo.png" alt="LibrePrep Logo" width={50} height={50} />
+            <span className="text-lg font-semibold tracking-tight">LibrePrep</span>
           </div>
           <Link
             href={buildTestUrl()}
@@ -97,9 +119,6 @@ export default function HomePage() {
 
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-6 pb-8 pt-14 text-center">
-        <div className="flex justify-center ">
-          <Image src="/libreprep-long.svg" alt="LibrePrep Logo" width={983} height={512} style={{ width: '300px', height: 'auto' }} loading={'eager'} />
-        </div>
         <h1 className="font-serif text-5xl font-semibold tracking-tight text-[#03345D]">
           Free the SAT.
         </h1>
