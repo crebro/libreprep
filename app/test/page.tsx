@@ -101,6 +101,8 @@ function TestPageInner() {
           .from("questions")
           .select("id, subject, primary_class_id, skill_id, question_type, difficulty, sat_question_id, primary_class:primary_classes!inner(shortcode), skill:skills!inner(shortcode)")
           .eq("subject", subject)
+          .order("primary_class_id", { ascending: true })
+          .order("skill_id", { ascending: true })
           .order("created_at", { ascending: true });
 
         if (classShortcodes.length > 0) {
@@ -195,7 +197,7 @@ function TestPageInner() {
         setIdx(newIdx);
         const batchIndex = Math.floor(newIdx / BATCH_SIZE);
         fetchBatch(batchIndex);
-      }
+    }
     },
     [questionIds.length, fetchBatch],
   );

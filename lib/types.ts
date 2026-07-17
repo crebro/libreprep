@@ -6,8 +6,8 @@ export type QuestionMeta = {
   question_type: "mcq" | "spr";
   difficulty: "E" | "M" | "H";
   sat_question_id: string | null;
-  primary_class?: { shortcode: string };
-  skill?: { shortcode: string };
+  primary_class: { shortcode: string };
+  skill: { shortcode: string };
 };
 
 export type Option = {
