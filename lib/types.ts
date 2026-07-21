@@ -38,4 +38,16 @@ export type QuestionState = {
   correct?: boolean;
 };
 
+export type NavigatorOptions = {
+  questionIds: QuestionMeta[];
+  answers: AnswerStore;
+  currentIdx: number;
+  classNames: Map<string, string>;
+  skillNames: Map<string, string>;
+  onClose: () => void;
+  onNavigate: (i: number) => void;
+  onCheck: (questionId: string) => void;
+  checkEnabled: boolean;
+}
+
 export type AnswerStore = Record<string, QuestionState>;

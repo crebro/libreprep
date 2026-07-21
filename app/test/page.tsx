@@ -10,6 +10,9 @@ import { DesmosPanel } from "@/components/sat/DesmosPanel";
 import { ReferenceSheet } from "@/components/sat/ReferenceSheet";
 import { saveAnswers, loadAnswers, buildSessionKey } from "@/lib/idb";
 import type { QuestionMeta, QuestionFull, QuestionState, AnswerStore } from "@/lib/types";
+import { NavigatorOverlay } from "../../components/sat/NavigatorOverlay";
+import { CompactNavigator } from "../../components/sat/CompactNavigator";
+import { QuestionPane } from "../../components/sat/QuestionPane";
 
 const BATCH_SIZE = 5;
 
@@ -54,6 +57,7 @@ function TestPageInner() {
   const [showDesmos, setShowDesmos] = useState(false);
   const [showRef, setShowRef] = useState(false);
   const [showNav, setShowNav] = useState(false);
+  const [showFullNav, setShowFullNav] = useState(false);
   const [showCheckPrompt, setShowCheckPrompt] = useState(false);
   const checkPromptDismissed = useRef(false);
 
@@ -457,17 +461,42 @@ function TestPageInner() {
         </div>
       </footer>
 
-      {/* Navigator overlay */}
-      {showNav && (
-        <NavigatorOverlay
+      {/* Navigator - compact popup */}
+      {showNav && !showFullNav && (
+        <CompactNavigator
           questionIds={questionIds}
           answers={answers}
           currentIdx={idx}
           classNames={classNames}
           skillNames={skillNames}
           onClose={() => setShowNav(false)}
+          onExpand={() => {
+            setShowFullNav(true);
+          }}
           onNavigate={(i) => {
             navigateTo(i);
+            setShowNav(false);
+          }}
+          onCheck={checkAnswer}
+          checkEnabled={checkEnabled} 
+        />
+      )}
+
+      {/* Navigator - full page */}
+      {showFullNav && (
+        <NavigatorOverlay
+          questionIds={questionIds}
+          answers={answers}
+          currentIdx={idx}
+          classNames={classNames}
+          skillNames={skillNames}
+          onClose={() => {
+            setShowFullNav(false);
+            setShowNav(false);
+          }}
+          onNavigate={(i) => {
+            navigateTo(i);
+            setShowFullNav(false);
             setShowNav(false);
           }}
           onCheck={checkAnswer}
@@ -510,322 +539,6 @@ export default function TestPage() {
     >
       <TestPageInner />
     </Suspense>
-  );
-}
-
-/* ─── Question Pane ─── */
-
-function QuestionPane({
-  q,
-  state,
-  eliminatorOn,
-  setEliminatorOn,
-  checkEnabled,
-  onMark,
-  onSelect,
-  onEliminate,
-  onCheck,
-  onTextChange,
-  fullWidth,
-}: {
-  q: QuestionFull;
-  state: QuestionState;
-  eliminatorOn: boolean;
-  setEliminatorOn: (v: boolean) => void;
-  checkEnabled: boolean;
-  onMark: () => void;
-  onSelect: (letter: string) => void;
-  onEliminate: (letter: string) => void;
-  onCheck: () => void;
-  onTextChange: (text: string) => void;
-  fullWidth?: boolean;
-}) {
-  const isSPR = q.question_type === "spr";
-  const hasSelection = isSPR ? !!state.textAnswer : !!state.selected;
-  const canCheck = checkEnabled && hasSelection && !state.checked;
-
-  return (
-    <section className={`overflow-y-auto px-10 py-8 ${fullWidth ? "" : "w-1/2"}`}>
-      <div className="mx-auto max-w-xl">
-        <div className="flex items-center justify-between rounded-t-md bg-muted px-3 py-2">
-          <div className="flex items-center gap-3">
-            <span className="flex h-7 w-7 items-center justify-center bg-foreground text-sm font-semibold text-background">
-              {q.id.slice(0, 4)}
-            </span>
-            <button
-              onClick={onMark}
-              className="flex items-center gap-1.5 text-sm font-medium text-foreground"
-            >
-              <span className={state.marked ? "text-red-500" : "text-foreground"}>
-                {state.marked ? "🚩" : "🔖"}
-              </span>
-              Mark for Review
-            </button>
-          </div>
-          {!isSPR && (
-            <button
-              onClick={() => setEliminatorOn(!eliminatorOn)}
-              className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold ${
-                eliminatorOn
-                  ? "bg-foreground text-background"
-                  : "text-foreground hover:bg-foreground/10"
-              }`}
-              aria-label="Toggle answer eliminator"
-            >
-              <span className="rounded border border-current px-1 leading-none">
-                <span className="line-through">ABC</span>
-              </span>
-            </button>
-          )}
-        </div>
-
-        <div className="border-t border-border pt-6">
-          <Highlightable>
-            <p className="font-serif text-[17px] leading-[1.6] text-foreground" dangerouslySetInnerHTML={{__html: q.stem}} />
-          </Highlightable>
-
-          {q.image_url && (
-            <div className="mt-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={q.image_url} alt="Question image" className="max-h-64 rounded border border-border" />
-            </div>
-          )}
-
-          {isSPR ? (
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-foreground mb-2">Your answer</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={state.textAnswer ?? ""}
-                  onChange={(e) => onTextChange(e.target.value)}
-                  disabled={state.checked}
-                  placeholder="Type your answer"
-                  className={`flex-1 rounded-lg border px-4 py-3 text-sm transition ${
-                    state.checked
-                      ? state.correct
-                        ? "border-green-500 bg-green-50"
-                        : "border-red-500 bg-red-50"
-                      : "border-foreground/30 focus:border-[#0b5cd6] focus:ring-2 focus:ring-[#0b5cd6]/20"
-                  }`}
-                />
-                {canCheck && (
-                  <button
-                    onClick={onCheck}
-                    className="rounded-full bg-[#0b5cd6] px-4 py-3 text-sm font-semibold text-white hover:bg-[#094bb0]"
-                  >
-                    Check
-                  </button>
-                )}
-                {state.checked && (
-                  <span className={`text-sm font-medium ${state.correct ? "text-green-600" : "text-red-600"}`}>
-                    {state.correct ? "Correct" : "Incorrect"}
-                  </span>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="mt-6 space-y-3">
-              {q.options
-                .slice()
-                .sort((a, b) => a.order_index - b.order_index)
-                .map((opt) => {
-                  const eliminated = !!state.eliminated?.[opt.label];
-                  const selected = state.selected === opt.label;
-                  return (
-                    <div key={opt.label} className="flex items-center gap-2">
-                      <button
-                        onClick={() => onSelect(opt.label)}
-                        disabled={eliminated || state.checked}
-                        className={`flex flex-1 items-center gap-3 rounded-lg border px-4 py-3 text-left transition ${
-                          selected
-                            ? state.checked
-                              ? state.correct
-                                ? "border-green-500 bg-green-50 ring-2 ring-green-500"
-                                : "border-red-500 bg-red-50 ring-2 ring-red-500"
-                              : "border-[#0b5cd6] bg-[#0b5cd6]/5 ring-2 ring-[#0b5cd6]"
-                            : state.checked && opt.is_correct
-                              ? "border-green-500 bg-green-50"
-                              : "border-foreground/30 hover:border-foreground/60"
-                        } ${eliminated ? "opacity-40" : ""}`}
-                      >
-                        <div
-                          className={`flex h-7 aspect-square items-center justify-center rounded-full border text-sm font-medium ${
-                            selected
-                              ? state.checked
-                                ? state.correct
-                                  ? "border-green-500 bg-green-500 text-white"
-                                  : "border-red-500 bg-red-500 text-white"
-                                : "border-[#0b5cd6] bg-[#0b5cd6] text-white"
-                              : state.checked && opt.is_correct
-                                ? "border-green-500 bg-green-500 text-white"
-                                : "border-foreground/40"
-                          }`}
-                        >
-                          {opt.label}
-                        </div>
-                        <span className={`font-serif text-[16px] ${eliminated ? "line-through" : ""}`} dangerouslySetInnerHTML={{__html: opt.option_text}} />
-                      </button>
-                      {!state.checked && eliminatorOn && (
-                        <button
-                          onClick={() => onEliminate(opt.label)}
-                          className="flex h-9 w-9 items-center justify-center rounded-full border border-foreground/40 text-sm font-semibold hover:bg-foreground/5"
-                          aria-label={`Eliminate ${opt.label}`}
-                          title={eliminated ? "Undo eliminate" : "Eliminate"}
-                        >
-                          {eliminated ? "↺" : <span className="line-through">{opt.label}</span>}
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              {canCheck && (
-                <div className="pt-2">
-                  <button
-                    onClick={onCheck}
-                    className="rounded-full bg-[#0b5cd6] px-6 py-2 text-sm font-semibold text-white hover:bg-[#094bb0]"
-                  >
-                    Check
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─── Navigator Overlay ─── */
-
-function NavigatorOverlay({
-  questionIds,
-  answers,
-  currentIdx,
-  classNames,
-  skillNames,
-  onClose,
-  onNavigate,
-  onCheck,
-  checkEnabled,
-}: {
-  questionIds: QuestionMeta[];
-  answers: AnswerStore;
-  currentIdx: number;
-  classNames: Map<string, string>;
-  skillNames: Map<string, string>;
-  onClose: () => void;
-  onNavigate: (i: number) => void;
-  onCheck: (questionId: string) => void;
-  checkEnabled: boolean;
-  }) {
-
-  const grouped = useMemo(() => {
-    const map = new Map<
-      string,
-      { skills: Map<string, { questions: { meta: QuestionMeta; idx: number }[] }> }
-    >();
-
-    for (let i = 0; i < questionIds.length; i++) {
-      const q = questionIds[i];
-      const classShortcode = q.primary_class?.shortcode ?? q.primary_class_id;
-      if (!map.has(classShortcode)) {
-        map.set(classShortcode, { skills: new Map() });
-      }
-      const classEntry = map.get(classShortcode)!;
-
-      const skillShortcode = q.skill?.shortcode ?? q.skill_id;
-      if (!classEntry.skills.has(skillShortcode)) {
-        classEntry.skills.set(skillShortcode, { questions: [] });
-      }
-      classEntry.skills.get(skillShortcode)!.questions.push({ meta: q, idx: i });
-    }
-
-    return map;
-  }, [questionIds]);
-
-  return (
-    <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background px-6 py-4">
-        <h2 className="text-lg font-semibold">Question Navigator</h2>
-        <button
-          onClick={onClose}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-foreground/60 hover:bg-foreground/10 hover:text-foreground"
-          aria-label="Close"
-        >
-          ✕
-        </button>
-      </div>
-
-      <div className="mx-auto max-w-3xl px-6 py-8">
-        {[...grouped.entries()].map(([classShortcode, classData]) => (
-          <div key={classShortcode} className="mb-8">
-            <h3 className="text-base font-semibold mb-3 text-foreground/80">
-              {classNames.get(classShortcode) ?? classShortcode}
-            </h3>
-            {[...classData.skills.entries()].map(([skillShortcode, skillData]) => (
-              <div key={skillShortcode} className="mb-4 pl-4">
-                <h4 className="text-sm font-medium mb-2 text-foreground/60">
-                  {skillNames.get(skillShortcode) ?? skillShortcode}
-                </h4>
-                <div className="grid grid-cols-15 gap-2">
-                  {skillData.questions.map(({ meta, idx }) => {
-                    const state = answers[meta.id];
-                    const isAnswered = !!state?.selected || !!state?.textAnswer;
-                    const isCurrent = idx === currentIdx;
-                    const isChecked = state?.checked;
-                    const isCorrect = state?.correct;
-                    const isMarked = state?.marked;
-
-                    let bgClass = "bg-background";
-                    let borderClass = "border-dashed border-foreground/40";
-
-                    if (isChecked) {
-                      bgClass = isCorrect ? "bg-green-100" : "bg-red-100";
-                      borderClass = isCorrect ? "border-green-500" : "border-red-500";
-                    } else if (isAnswered) {
-                      bgClass = "bg-[#0b5cd6] text-white";
-                      borderClass = "border-solid border-[#0b5cd6]";
-                    }
-
-                    if (isCurrent) {
-                      borderClass = "border-solid border-foreground ring-2 ring-foreground/40";
-                    }
-
-                    return (
-                      <div key={meta.id} className="relative">
-                        <button
-                          onClick={() => onNavigate(idx)}
-                          className={`relative rounded-md border py-2 text-sm transition ${bgClass} ${borderClass} w-full`}
-                        >
-                          {idx + 1}
-                          {isMarked && (
-                            <span className="absolute -right-1 -top-1 text-[10px]">🚩</span>
-                          )}
-                        </button>
-                        {checkEnabled && isAnswered && !isChecked && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onCheck(meta.id);
-                            }}
-                            className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-[#0b5cd6] text-[8px] font-bold text-white flex items-center justify-center"
-                            title="Check answer"
-                          >
-                            ✓
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }
 
