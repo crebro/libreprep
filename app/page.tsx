@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import { sections, type Section } from "@/lib/sat-filters";
 
 export default function HomePage() {
@@ -119,6 +120,7 @@ export default function HomePage() {
 
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-6 pb-8 pt-14 text-center">
+        <Image src="/libreprep-logo.svg" alt="Libreprep Logo" width={200} height={200} className="mx-auto mb-6 w-30 h-30"/>
         <h1 className="font-serif text-5xl font-semibold tracking-tight text-[#03345D]">
           Free the SAT.
         </h1>
