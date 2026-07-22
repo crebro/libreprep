@@ -1,6 +1,8 @@
 "use client";
 import { Highlightable } from "@/components/sat/Highlightable";
 import type { QuestionFull, QuestionState } from "@/lib/types";
+import { BookmarkIcon as BookmarkIconSolid } from "@heroicons/react/20/solid";
+import { BookmarkIcon as BookmarkIconOutline } from "@heroicons/react/24/outline";
 
 /* ─── Question Pane ─── */
 export function QuestionPane({
@@ -27,15 +29,15 @@ export function QuestionPane({
       <div className="mx-auto max-w-xl">
         <div className="flex items-center justify-between rounded-t-md bg-muted px-3 py-2">
           <div className="flex items-center gap-3">
-            <span className="flex h-7 w-7 items-center justify-center bg-foreground text-sm font-semibold text-background">
-              {q.id.slice(0, 4)}
+            <span className="flex h-7 px-2 items-center justify-center bg-foreground text-sm font-semibold text-background">
+              {q.sat_question_id ?? q.id.slice(0, 4)}
             </span>
             <button
               onClick={onMark}
               className="flex items-center gap-1.5 text-sm font-medium text-foreground"
             >
-              <span className={state.marked ? "text-red-500" : "text-foreground"}>
-                {state.marked ? "🚩" : "🔖"}
+              <span className={state.marked ? "text-red-800" : "text-foreground"}>
+                {state.marked ? <BookmarkIconSolid className="size-6"/> : <BookmarkIconOutline className="size-6"/>}
               </span>
               Mark for Review
             </button>
@@ -106,7 +108,7 @@ export function QuestionPane({
                   const eliminated = !!state.eliminated?.[opt.label];
                   const selected = state.selected === opt.label;
                   return (
-                    <div key={opt.label} className="flex items-center gap-2">
+                    <div key={opt.label} className="flex items-center gap-2 relative">
                       <button
                         onClick={() => onSelect(opt.label)}
                         disabled={eliminated || state.checked}
@@ -138,7 +140,8 @@ export function QuestionPane({
                       {!state.checked && eliminatorOn && (
                         <button
                           onClick={() => onEliminate(opt.label)}
-                          className="flex h-9 w-9 items-center justify-center rounded-full border border-foreground/40 text-sm font-semibold hover:bg-foreground/5"
+                          className="flex h-9 w-9 items-center justify-center rounded-full border border-foreground/40 text-sm font-semibold hover:bg-foreground/5 absolute"
+                          style={{right: '0', transform: 'translateX(120%)'}}
                           aria-label={`Eliminate ${opt.label}`}
                           title={eliminated ? "Undo eliminate" : "Eliminate"}
                         >

@@ -35,7 +35,6 @@ const skillNames = (() => {
 
 function TestPageInner() {
   const searchParams = useSearchParams();
-  const subject = searchParams.get("subject") as "english" | "math" | null;
   const classesParam = searchParams.get("classes") ?? "";
   const skillsParam = searchParams.get("skills") ?? "";
   const difficultyParam = searchParams.get("difficulty") ?? "";
@@ -45,10 +44,8 @@ function TestPageInner() {
   const skillShortcodes = useMemo(() => skillsParam.split(",").filter(Boolean), [skillsParam]);
   const difficultyValues = useMemo(() => difficultyParam.split(",").filter(Boolean), [difficultyParam]);
 
-  const [phase, setPhase] = useState<Phase>(() => (subject ? "loading" : "error"));
-  const [errorMsg, setErrorMsg] = useState(() =>
-    subject ? "" : "No subject specified. Go back to the home page to start.",
-  );
+  const [phase, setPhase] = useState<Phase>(() => ("loading"));
+  const [errorMsg, setErrorMsg] = useState(() => "");
   const [questionIds, setQuestionIds] = useState<QuestionMeta[]>([]);
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<AnswerStore>({});
@@ -95,8 +92,6 @@ function TestPageInner() {
 
   // Phase 1: fetch question IDs
   useEffect(() => {
-    if (!subject) return;
-
     let cancelled = false;
 
     (async () => {
@@ -104,7 +99,6 @@ function TestPageInner() {
         let query = supabase
           .from("questions")
           .select("id, subject, primary_class_id, skill_id, question_type, difficulty, sat_question_id, primary_class:primary_classes!inner(shortcode), skill:skills!inner(shortcode)")
-          .eq("subject", subject)
           .order("primary_class_id", { ascending: true })
           .order("skill_id", { ascending: true })
           .order("created_at", { ascending: true });
@@ -160,7 +154,7 @@ function TestPageInner() {
     return () => {
       cancelled = true;
     };
-  }, [subject, classShortcodes, skillShortcodes, difficultyValues]);
+  }, [classShortcodes, skillShortcodes, difficultyValues]);
 
 
   // Batch fetching - use functional update to avoid stale closures

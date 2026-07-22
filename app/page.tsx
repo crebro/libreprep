@@ -81,17 +81,17 @@ export default function HomePage() {
 
   const buildTestUrl = () => {
     const params = new URLSearchParams();
-    params.set("subject", activeSection);
 
-    const classShortcodes = section.classes
+    const classShortcodes = sections.map((section) => section.classes
       .filter((c) => selectedClasses[c.id])
-      .map((c) => c.shortcode);
+      .map((c) => c.shortcode)).flat();
+
     if (classShortcodes.length > 0) params.set("classes", classShortcodes.join(","));
 
-    const skillShortcodes = section.classes
+    const skillShortcodes = sections.map((section) => section.classes
       .flatMap((c) => c.skills)
       .filter((sk) => selectedSkills[sk.id])
-      .map((sk) => sk.shortcode);
+      .map((sk) => sk.shortcode)).flat();
     if (skillShortcodes.length > 0) params.set("skills", skillShortcodes.join(","));
 
     params.set("difficulty", difficultyLabel);

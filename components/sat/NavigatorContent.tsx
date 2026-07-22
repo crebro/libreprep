@@ -1,6 +1,7 @@
 "use client";
-import type { QuestionMeta, AnswerStore, NavigatorOptions } from "@/lib/types";
+import type { QuestionMeta, NavigatorOptions } from "@/lib/types";
 import { useMemo } from "react";
+import { BookmarkIcon } from "@heroicons/react/20/solid";
 
 export function NavigatorContent({ rowSize, ...navigatorOptions }:  NavigatorOptions & {rowSize?: number}) {
   const {
@@ -75,7 +76,9 @@ export function NavigatorContent({ rowSize, ...navigatorOptions }:  NavigatorOpt
                         >
                           {idx + 1}
                           {isMarked && (
-                            <span className="absolute -right-1 -top-1 text-[10px]">🚩</span>
+                            <span className="absolute right-0 top-0 translate-x-1/2 -translate-y-1/2 text-[10px] text-red-800">
+                              <BookmarkIcon className="size-4"/>
+                            </span>
                           )}
                         </button>
                         {checkEnabled && isAnswered && !isChecked && (
