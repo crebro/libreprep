@@ -75,9 +75,9 @@ export default function HomePage() {
   const anyDifficultySelected = Object.values(selectedDifficulty).some(Boolean);
   const difficultyLabel = anyDifficultySelected
     ? Object.entries(selectedDifficulty)
-        .filter(([, v]) => v)
-        .map(([k]) => k)
-        .join(",")
+      .filter(([, v]) => v)
+      .map(([k]) => k)
+      .join(",")
     : "E,M,H";
 
   const buildTestUrl = () => {
@@ -109,18 +109,12 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <span className="text-lg font-semibold tracking-tight">LibrePrep</span>
           </div>
-          <Link
-            href={buildTestUrl()}
-            className="rounded-full bg-[#03345D] px-4 py-2 text-sm font-semibold text-white hover:bg-[#052a4a]"
-          >
-            Start test →
-          </Link>
         </div>
       </nav>
 
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-6 pb-8 pt-14 text-center">
-        <Image src="/libreprep-logo.svg" alt="Libreprep Logo" width={200} height={200} className="mx-auto mb-6 w-30 h-30"/>
+        <Image src="/libreprep-logo.svg" alt="Libreprep Logo" width={200} height={200} className="mx-auto mb-6 w-30 h-30" />
         <h1 className="font-serif text-5xl font-semibold tracking-tight text-[#03345D]">
           Free the SAT.
         </h1>
@@ -142,18 +136,16 @@ export default function HomePage() {
                 <button
                   key={s.id}
                   onClick={() => setActiveSection(s.id)}
-                  className={`relative flex-1 px-6 py-4 text-left transition ${
-                    active ? "bg-[#03345D] text-white" : "text-[#0b1a2b] hover:bg-[#0b1a2b]/5"
-                  }`}
+                  className={`relative flex-1 px-6 py-4 text-left transition ${active ? "bg-[#03345D] text-white" : "text-[#0b1a2b] hover:bg-[#0b1a2b]/5"
+                    }`}
                 >
                   <div className="text-xs uppercase tracking-wide opacity-70">Section</div>
                   <div className="mt-0.5 flex items-center gap-2 text-lg font-semibold">
                     {s.name}
                     {count > 0 && (
                       <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                          active ? "bg-white/20" : "bg-[#03345D] text-white"
-                        }`}
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${active ? "bg-white/20" : "bg-[#03345D] text-white"
+                          }`}
                       >
                         {count}
                       </span>
@@ -175,11 +167,10 @@ export default function HomePage() {
                   <button
                     key={d}
                     onClick={() => toggleDifficulty(d)}
-                    className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${
-                      on
+                    className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${on
                         ? "border-[#03345D] bg-[#03345D] text-white"
                         : "border-[#0b1a2b]/25 text-[#0b1a2b] hover:border-[#03345D]"
-                    }`}
+                      }`}
                   >
                     {label}
                   </button>
@@ -204,14 +195,12 @@ export default function HomePage() {
                       role="switch"
                       aria-checked={classOn}
                       onClick={() => toggleClass(section, cls.id)}
-                      className={`relative h-6 w-11 rounded-full transition ${
-                        classOn ? "bg-[#03345D]" : "bg-[#0b1a2b]/20"
-                      }`}
+                      className={`relative h-6 w-11 rounded-full transition ${classOn ? "bg-[#03345D]" : "bg-[#0b1a2b]/20"
+                        }`}
                     >
                       <span
-                        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition ${
-                          classOn ? "left-[22px]" : "left-0.5"
-                        }`}
+                        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition ${classOn ? "left-[22px]" : "left-0.5"
+                          }`}
                       />
                     </button>
                     <button
@@ -236,11 +225,10 @@ export default function HomePage() {
                           <button
                             key={sk.id}
                             onClick={() => toggleSkill(sk.id)}
-                            className={`rounded-full border px-3 py-1.5 text-sm transition ${
-                              on
+                            className={`rounded-full border px-3 py-1.5 text-sm transition ${on
                                 ? "border-[#03345D] bg-[#03345D] text-white"
                                 : "border-[#0b1a2b]/25 text-[#0b1a2b] hover:border-[#03345D]"
-                            }`}
+                              }`}
                           >
                             {sk.name}
                           </button>
@@ -269,14 +257,12 @@ export default function HomePage() {
                     role="switch"
                     aria-checked={checkEnabled}
                     onClick={() => setCheckEnabled((v) => !v)}
-                    className={`relative h-6 w-11 rounded-full transition ${
-                      checkEnabled ? "bg-[#03345D]" : "bg-[#0b1a2b]/20"
-                    }`}
+                    className={`relative h-6 w-11 rounded-full transition ${checkEnabled ? "bg-[#03345D]" : "bg-[#0b1a2b]/20"
+                      }`}
                   >
                     <span
-                      className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition ${
-                        checkEnabled ? "left-[22px]" : "left-0.5"
-                      }`}
+                      className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition ${checkEnabled ? "left-[22px]" : "left-0.5"
+                        }`}
                     />
                   </button>
                   <span className="text-sm">Enable check button</span>
@@ -292,15 +278,30 @@ export default function HomePage() {
           <div className="flex items-center justify-between bg-[#f7f5f0]/60 px-6 py-4">
             <div className="text-sm text-[#0b1a2b]/70">
               {totalSkills === 0
-                ? "No skills selected — you'll get a mixed practice set."
+                ? "No skills selected."
                 : `${totalSkills} skill${totalSkills === 1 ? "" : "s"} selected`}
             </div>
-            <Link
+            {totalSkills != 0 ? <Link
               href={buildTestUrl()}
               className="rounded-full bg-[#03345D] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#052a4a]"
             >
               Start practice test →
-            </Link>
+            </Link> : <>
+              <div className="relative inline-block group">
+                <div
+                  data-tooltip-target="tooltip-default"
+                  className="rounded-full bg-gray-400 px-6 py-2.5 text-sm font-semibold text-white cursor-not-allowed"
+                >
+                  Start practice test →
+                </div>
+
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block px-3 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap shadow-lg">
+                  No skills selected.
+                </div>
+
+              </div>
+
+            </>}
           </div>
         </div>
       </section>
